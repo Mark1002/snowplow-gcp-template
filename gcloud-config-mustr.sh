@@ -9,8 +9,8 @@ export SERVICEACCOUNT="sn-service@xxxx.iam.gserviceaccount.com"
 
 # region must be have dafaflow endpoint
 # https://cloud.google.com/dataflow/docs/concepts/regional-endpoints
-export ZONE="europe-west1-a"
-export REGION="europe-west1"           
+export ZONE="us-central1-c"
+export REGION="us-central1"           
 
 export COLLECTOR_MACHINE_TYPE="e2-micro"
 export ETL_MACHINE_TYPE="e2-small"

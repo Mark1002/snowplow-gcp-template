@@ -1,6 +1,6 @@
 #!/bin/bash
-enrich_version="1.1.0"
-bq_version="0.4.0"
+enrich_version="1.2.3"
+bq_version="0.6.1"
 TEMP_BUCKET="%TEMPBUCKET%"
 project_id="%PROJECTID%"
 region="%REGION%"

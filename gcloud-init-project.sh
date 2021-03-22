@@ -57,7 +57,7 @@ gcloud pubsub subscriptions create "enriched-good-sub-test" --topic="enriched-go
 
 echo "[info] Creating temp bucket $TEMP_BUCKET for confugurations"
 #prepare temp buckets for configurations
-gsutil mb -l EU "$TEMP_BUCKET"
+gsutil mb -l US "$TEMP_BUCKET"
 touch zero.txt
 gsutil cp ./zero.txt  $TEMP_BUCKET/temp-files/
 gsutil cp ./zero.txt  $TEMP_BUCKET/config/
@@ -70,7 +70,7 @@ gsutil cp ./configs/bigqueryloader_config.json $TEMP_BUCKET/config/
 
 echo "[info] Preparing bigquery dataset $GCP_NAME:snowplow"
 #prepare BigQuery
-bq --location=EU mk "$GCP_NAME:snowplow"
+bq --location=US mk "$GCP_NAME:snowplow"
 
 
 ###################################### Colector group + loadbalancer ###################################################
