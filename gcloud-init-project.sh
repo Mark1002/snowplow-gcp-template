@@ -74,16 +74,25 @@ bq --location=US mk "$GCP_NAME:snowplow"
 
 
 ###################################### Colector group + loadbalancer ###################################################
+# create vpc network
+echo "[info] Preparing vpc network"
+if [[ $(gcloud compute networks list --filter snowplow-vpc) == "" ]] ; then
+    gcloud compute networks create snowplow-vpc \
+        --project="${GCP_NAME}" --description='for snowplow' \
+        --subnet-mode=auto --mtu=1460 --bgp-routing-mode=regional
+else
+    echo "vpc network snowplow-vpc aleady exist!"
+
 # collector instances template
 echo "[info] Preparing compute instance group machine template"
 gcloud compute instance-templates create snowplow-collector-template \
     --machine-type=${COLLECTOR_MACHINE_TYPE} \
-    --network=projects/${GCP_NAME}/global/networks/default \
+    --network=projects/${GCP_NAME}/global/networks/snowplow-vpc \
     --network-tier=PREMIUM \
     --metadata-from-file=startup-script=./configs/collector_startup.sh \
     --maintenance-policy=MIGRATE --service-account=$SERVICEACCOUNT \
     --scopes=https://www.googleapis.com/auth/pubsub,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/trace.append,https://www.googleapis.com/auth/devstorage.read_only \
-    --tags=collector,http-server,https-server \
+    --tags=snowplow-collector,http-server,https-server \
     --image=${IMAGE} \
     --image-project=${IMAGE_PROJECT} \
     --boot-disk-size=10GB \
@@ -91,19 +100,31 @@ gcloud compute instance-templates create snowplow-collector-template \
     --boot-disk-device-name=snowplow-collector-template
 
 echo "[info] Preparing firewall rule for port 8080"
-gcloud compute firewall-rules create snowplow-collector-rule --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:8080 --source-ranges=0.0.0.0/0 --target-tags=collector
+gcloud compute firewall-rules create snowplow-collector-rule --direction=INGRESS \
+    --priority=1000 --network=snowplow-vpc --action=ALLOW \
+    --rules=tcp:8080 --source-ranges=211.20.45.1/32 \
+    --target-tags=snowplow-collector
 
 echo "[info] Preparing health check"
-gcloud compute health-checks create http "snowplow-collector-health-check" --timeout "5" --check-interval "10" --unhealthy-threshold "3" --healthy-threshold "2" --port "8080" --request-path "/health"
+gcloud compute health-checks create http "snowplow-collector-health-check" \
+    --timeout "5" --check-interval "10" \
+    --unhealthy-threshold "3" --healthy-threshold "2" \
+    --port "8080" --request-path "/health"
 
 echo "[info] Preparing compute instance group"
-gcloud beta compute instance-groups managed create snowplow-collector-group --base-instance-name=snowplow-collector-group --template=snowplow-collector-template --size=1  --health-check=snowplow-collector-health-check --initial-delay=300
+gcloud beta compute instance-groups managed create snowplow-collector711-group \
+    --base-instance-name=snowplow-collector711-group \
+    --template=snowplow-collector-template --size=1 \
+    --health-check=snowplow-collector-health-check \
+    --initial-delay=300 --region "${REGION}"
 
 echo "[info] Seting autoscaling for group"
-gcloud compute instance-groups managed set-autoscaling "snowplow-collector-group" --cool-down-period "60" --max-num-replicas "2" --min-num-replicas "1" --target-cpu-utilization "0.6"
+gcloud compute instance-groups managed set-autoscaling "snowplow-collector711-group" \
+    --cool-down-period "60" --max-num-replicas "2" \
+    --min-num-replicas "1" --target-cpu-utilization "0.6"
 
 gcloud compute instances list
-collector_ip=$(gcloud compute instances list --filter="name~collector" --format=json | jq -r '.[0].networkInterfaces[0].accessConfigs[0].natIP')
+collector_ip=$(gcloud compute instances list --filter="name~collector711" --format=json | jq -r '.[0].networkInterfaces[0].accessConfigs[0].natIP')
 echo "[info] All done. Collector runs at $collector_ip. Wait until scala-stream-collector starts (cca. 2-5mins)"
 echo "[test] curl http://$collector_ip:8080/health"
 echo "[test] curl http://$collector_ip:8080/i"

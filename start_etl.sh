@@ -9,7 +9,7 @@ gcloud config set project $GCP_NAME
 
 gcloud compute instances create orchestartor \
     --machine-type=${ETL_MACHINE_TYPE}\
-    --subnet=default --network-tier=PREMIUM \
+    --subnet=snowplow-vpc --network-tier=PREMIUM \
     --metadata-from-file=startup-script=./configs/beam-and-bigqueryloader-startup.sh \
     --maintenance-policy=MIGRATE --service-account=${SERVICEACCOUNT} \
     --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/pubsub,https://www.googleapis.com/auth/compute,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/trace.append,https://www.googleapis.com/auth/devstorage.read_write \
