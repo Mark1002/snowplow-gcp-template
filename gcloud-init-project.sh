@@ -1,5 +1,5 @@
-#!/bin/bash 
-set -ex
+#!/bin/bash
+
 # Init whole project. Creates colector instances, BQ, pubsubs, cloud storage etc.
 # You have to finish the process manualy by configuring load balancer
 
@@ -82,6 +82,7 @@ if [[ $(gcloud compute networks list --filter snowplow-vpc) == "" ]] ; then
         --subnet-mode=auto --mtu=1460 --bgp-routing-mode=regional
 else
     echo "vpc network snowplow-vpc aleady exist!"
+fi
 
 # collector instances template
 echo "[info] Preparing compute instance group machine template"
