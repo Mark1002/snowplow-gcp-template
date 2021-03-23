@@ -121,7 +121,7 @@ gcloud beta compute instance-groups managed create snowplow-collector711-group \
 
 echo "[info] Seting autoscaling for group"
 gcloud compute instance-groups managed set-autoscaling "snowplow-collector711-group" \
-    --cool-down-period "60" --max-num-replicas "2" \
+    --cool-down-period "60" --max-num-replicas "2" --region "${REGION}" \
     --min-num-replicas "1" --target-cpu-utilization "0.6"
 
 gcloud compute instances list
