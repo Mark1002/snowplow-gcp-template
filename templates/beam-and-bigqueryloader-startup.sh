@@ -45,7 +45,7 @@ gsutil cp  ${TEMP_BUCKET}/config/bigqueryloader_config.json .
 #listen to new bq types
 ./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator listen \
     --config $(cat bigqueryloader_config.json | base64 -w 0) \
-    --resolver $(cat iglu_config.json | base64 -w 0)
+    --resolver $(cat iglu_config.json | base64 -w 0) &
 
 # add table column
 ./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator add-column \
