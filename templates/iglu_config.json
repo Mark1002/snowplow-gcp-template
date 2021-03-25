@@ -28,7 +28,7 @@
                 "vendorPrefixes": ["com.cloudmile.711"],
                 "connection": {
                     "http": {
-                        "uri": "https://storage.googleapis.com/711-snowplow-iglu-gvscmt8d74"
+                        "uri": "http://storage.googleapis.com/711-snowplow-iglu-gvscmt8d74"
                     }
                 }
             }
