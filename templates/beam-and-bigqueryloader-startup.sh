@@ -38,9 +38,26 @@ gsutil cp  ${TEMP_BUCKET}/config/bigqueryloader_config.json .
     --resolver=iglu_config.json
 
 #create tables
-./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator create --config $(cat bigqueryloader_config.json | base64 -w 0) --resolver $(cat iglu_config.json | base64 -w 0)
+./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator create \
+    --config $(cat bigqueryloader_config.json | base64 -w 0) \
+    --resolver $(cat iglu_config.json | base64 -w 0)
 
 #listen to new bq types
-./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator listen --config $(cat bigqueryloader_config.json | base64 -w 0) --resolver $(cat iglu_config.json | base64 -w 0) &
+./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator listen \
+    --config $(cat bigqueryloader_config.json | base64 -w 0) \
+    --resolver $(cat iglu_config.json | base64 -w 0)
 
-./snowplow-bigquery-loader-$bq_version/bin/snowplow-bigquery-loader --config=$(cat bigqueryloader_config.json | base64 -w 0) --resolver=$(cat iglu_config.json | base64 -w 0) --runner=DataFlowRunner --project=$project_id --region=$region --gcpTempLocation=${TEMP_BUCKET}/temp-files
+# add table column
+./snowplow-bigquery-mutator-$bq_version/bin/snowplow-bigquery-mutator add-column \
+    --schema iglu:com.cloudmile.711/funnel_event/jsonschema/1-0-0 \
+    --shred-property CONTEXTS \
+    --config $(cat bigqueryloader_config.json | base64 -w 0) \
+    --resolver $(cat iglu_config.json | base64 -w 0)
+
+./snowplow-bigquery-loader-$bq_version/bin/snowplow-bigquery-loader \
+    --config=$(cat bigqueryloader_config.json | base64 -w 0) \
+    --resolver=$(cat iglu_config.json | base64 -w 0) \
+    --runner=DataFlowRunner \
+    --project=$project_id \
+    --region=$region \
+    --gcpTempLocation=${TEMP_BUCKET}/temp-files
